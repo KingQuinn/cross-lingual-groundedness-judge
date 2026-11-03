@@ -1,0 +1,15 @@
+# data construction
+datasets
+sacrebleu
+google-genai
+# open-model judges and fine-tuning (Colab GPU)
+torch
+transformers>=4.51
+accelerate
+bitsandbytes
+peft
+# analysis and tests
+numpy
+pandas
+matplotlib
+pytest

@@ -1,0 +1,1 @@
+`medquad_sample.jsonl`: the first 200 question-answer pairs of the MedlinePlus Health Topics subset of MedQuAD (Ben Abacha & Demner-Fushman, 2019), converted from the original XML at github.com/abachaa/MedQuAD. Licensed CC BY 4.0. Used only for unit tests and offline dry runs.
