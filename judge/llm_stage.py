@@ -23,7 +23,7 @@ LANG_NAMES = {"pcm": "Nigerian Pidgin (Naija)", "ha": "Hausa", "en": "English"}
 class GeminiClient:
     """Thin wrapper around the google-genai SDK with retry and pacing."""
 
-    def __init__(self, model="gemini-3.8-flash", api_key=None, min_interval=4.0, max_retries=6):
+    def __init__(self, model="gemini-3.8-flash", api_key=None, min_interval=4.0, max_retries=12):
         from google import genai
         from google.genai import types
         self._types = types
@@ -42,18 +42,28 @@ class GeminiClient:
                 self._last = time.time()
                 return self.client.models.generate_content(model=self.model, contents=prompt, config=cfg).text
             except Exception as e:  # rate limits, transient server errors
-                delay = min(60, 5 * 2**attempt)
+                delay = min(120, 5 * 2**attempt)   # 5, 10, 20, 40, 80, 120, 120 ... (~17 min max)
                 print(f"  LLM error ({type(e).__name__}: {str(e)[:120]}), retrying in {delay}s")
                 time.sleep(delay)
         raise RuntimeError("LLM call failed after retries")
 
 
 class CachedClient:
-    """Disk cache keyed by the prompt hash."""
+    """Disk cache keyed by the prompt hash. The cache records which model made
+    its responses and refuses to mix models: a dataset built partly by one
+    model and partly by another would be silently inconsistent."""
 
     def __init__(self, client, path):
         self.client, self.path = client, path
         self.cache = json.load(open(path)) if os.path.exists(path) else {}
+        model = getattr(client, "model", None)
+        cached_model = self.cache.get("__model__")
+        if cached_model and model and cached_model != model:
+            raise RuntimeError(
+                f"Cache {path} was built with {cached_model}, but this run uses {model}. "
+                f"Use the same model, or move the cache aside to rebuild everything with {model}.")
+        if model:
+            self.cache["__model__"] = model
 
     def generate(self, prompt, json_mode=True):
         k = hashlib.sha256(prompt.encode()).hexdigest()
@@ -76,10 +86,13 @@ def parse_json_list(text):
     return data
 
 
-def batched_call(client, instructions, payload, out_key, batch_size=8):
-    """payload: list of dicts with an 'id'. Returns {id: output string}."""
+def batched_call(client, instructions, payload, out_key, batch_size=8, label=""):
+    """payload: list of dicts with an 'id'. Returns {id: output string}.
+    Prints progress, so a slow run (rate limits, overloaded API) is visibly alive."""
     out = {}
+    n_batches = (len(payload) + batch_size - 1) // batch_size
     for i in range(0, len(payload), batch_size):
+        b = i // batch_size + 1
         batch = payload[i:i + batch_size]
         prompt = instructions + "\n\nINPUT:\n" + json.dumps(batch, ensure_ascii=False, indent=1)
         try:
@@ -87,7 +100,9 @@ def batched_call(client, instructions, payload, out_key, batch_size=8):
                 if isinstance(row, dict) and "id" in row and isinstance(row.get(out_key), str):
                     out[str(row["id"])] = row[out_key].strip()
         except (json.JSONDecodeError, TypeError) as e:
-            print(f"  batch {i // batch_size}: unparseable response ({e}); items skipped")
+            print(f"  batch {b}: unparseable response ({e}); items skipped")
+        if b % 5 == 0 or b == n_batches:
+            print(f"  {label} batch {b}/{n_batches} done ({len(out)} items so far)", flush=True)
     return out
 
 
@@ -112,7 +127,7 @@ Return a JSON list of objects: {"id": <id>, "text": <translation>}."""
 
 def rewrite_answers(bases, client, batch_size=10):
     payload = [{"id": b.doc_id, "question": b.question, "sentence": b.sentence} for b in bases]
-    out = batched_call(client, REWRITE_INSTR, payload, "answer", batch_size)
+    out = batched_call(client, REWRITE_INSTR, payload, "answer", batch_size, label="rewrite")
     kept = 0
     for b in bases:
         a = out.get(b.doc_id)
@@ -138,8 +153,10 @@ def translate_bases(bases, lang, client, batch_size=10, chrf_min=50.0):
     for b in todo:
         payload += [{"id": f"{b.doc_id}|s{k}", "text": s} for k, s in enumerate(b.passage_sents)]
         payload.append({"id": f"{b.doc_id}|a", "text": b.answer["en"]})
-    fwd = batched_call(client, TRANSLATE_INSTR.format(lang=LANG_NAMES[lang]), payload, "text", batch_size)
-    back = batched_call(client, BACK_INSTR, [{"id": k, "text": v} for k, v in fwd.items()], "text", batch_size)
+    fwd = batched_call(client, TRANSLATE_INSTR.format(lang=LANG_NAMES[lang]), payload, "text", batch_size,
+                       label=f"translate {lang}")
+    back = batched_call(client, BACK_INSTR, [{"id": k, "text": v} for k, v in fwd.items()], "text", batch_size,
+                        label=f"back-translate {lang}")
 
     stats = {"candidates": len(todo), "translated": 0, "fail_numbers": 0, "fail_chrf": 0, "kept": 0}
     for b in todo:
