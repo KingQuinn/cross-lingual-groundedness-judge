@@ -4,7 +4,7 @@ Run one judge over a split and save predictions (resumable).
     python scripts/run_judge.py --judge shortcut
     python scripts/run_judge.py --judge hf:CohereLabs/tiny-aya-earth --limit 500
     python scripts/run_judge.py --judge hf:Qwen/Qwen3-4B --mode verdict --name qwen4b-verdict
-    python scripts/run_judge.py --judge gemini:gemini-2.5-flash
+    python scripts/run_judge.py --judge gemini:gemini-3.8-flash
     python scripts/run_judge.py --judge hf:<base> --adapter checkpoints/<run>/final --name <run>
 
 Writes <out_dir>/<name>.jsonl: one line per item (gold fields + prediction).

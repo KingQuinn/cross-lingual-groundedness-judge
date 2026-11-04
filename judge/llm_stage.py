@@ -23,7 +23,7 @@ LANG_NAMES = {"pcm": "Nigerian Pidgin (Naija)", "ha": "Hausa", "en": "English"}
 class GeminiClient:
     """Thin wrapper around the google-genai SDK with retry and pacing."""
 
-    def __init__(self, model="gemini-2.5-flash", api_key=None, min_interval=4.0, max_retries=6):
+    def __init__(self, model="gemini-3.8-flash", api_key=None, min_interval=4.0, max_retries=6):
         from google import genai
         from google.genai import types
         self._types = types

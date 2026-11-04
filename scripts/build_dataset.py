@@ -39,7 +39,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n_docs", type=int, default=300)
     ap.add_argument("--langs", nargs="+", default=["pcm", "ha"])
-    ap.add_argument("--model", default="gemini-2.5-flash")
+    ap.add_argument("--model", default="gemini-3.8-flash")
     ap.add_argument("--batch_size", type=int, default=12)
     ap.add_argument("--chrf_min", type=float, default=50.0)
     ap.add_argument("--seed", type=int, default=0)
