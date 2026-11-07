@@ -37,4 +37,4 @@ Before phase 2: accept the Tiny Aya and Llama licences on Hugging Face, and add 
 
 - **After phase 2:** "Built a cross-lingual faithfulness benchmark (English sources, Pidgin and Hausa answers) with known labels and reasoning traces, adversarial controls and robustness sets; benchmarked three small open models and an API judge."
 - **After phase 3:** add the fine-tuned result: F1 on Pidgin/Hausa, critical-error recall, cost on one T4.
-- **After phase 6:** link the report and the released adapter.
+- **After phase 6:** link the report and the released adapter

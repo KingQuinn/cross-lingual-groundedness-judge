@@ -41,6 +41,8 @@ def main():
     ap.add_argument("--langs", nargs="+", default=["pcm", "ha"])
     ap.add_argument("--model", default="gemini-3.8-flash")
     ap.add_argument("--batch_size", type=int, default=12)
+    ap.add_argument("--min_interval", type=float, default=4.0,
+                    help="seconds between API calls; raise it if you get 429 per-minute quota errors")
     ap.add_argument("--chrf_min", type=float, default=50.0)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="data")
@@ -55,7 +57,7 @@ def main():
     print(f"passages selected: {len(bases)}  splits: {Counter(b.split for b in bases)}")
 
     client = EchoClient() if a.dry_run else CachedClient(
-        GeminiClient(model=a.model), os.path.join(a.out, "cache", "llm_cache.json"))
+        GeminiClient(model=a.model, min_interval=a.min_interval), os.path.join(a.out, "cache", "llm_cache.json"))
     stats = {"n_records": len(records), "n_passages": len(bases), "model": "echo" if a.dry_run else a.model,
              "rewrite": rewrite_answers(bases, client, a.batch_size)}
     print("rewrite:", stats["rewrite"])
