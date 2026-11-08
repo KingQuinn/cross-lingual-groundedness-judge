@@ -4,7 +4,7 @@ Each phase ends with something committed and a result you can quote.
 
 | Phase | What | Where | Output | Status |
 |---|---|---|---|---|
-| 0 | Protocol, pipeline with gold reasoning traces, judges, metrics, 24 tests | this repo | `PROTOCOL.md`, offline dry run | ✅ done |
+| 0 | Protocol, pipeline with gold reasoning traces, judges, metrics, 24 tests | this repo | `PROTOCOL.md`, offline dry run | done |
 | 1 | Build the dataset (Gemini rewrite, sentence-aligned translation, filter) | notebook 01 | `data/items.jsonl`, `data/stats.json` | ☐ |
 | 1b | Your checks: translation spot-check (~30–40 per language); Pidgin and Hausa wording in `judge/text.py` (number words, referral sentences, condition and opener words, `PIDGIN_VARIANTS`); read ~10 gold traces | `human_labels/` | % meaning preserved | ☐ |
 | 2 | Tokenizer fertility; zero-shot judges: shortcut, Tiny Aya Earth, Qwen3-4B, Llama 3.2 3B (4-bit), Gemini | notebook 02 | H1, H4; model comparison; choice of base | ☐ |
@@ -31,10 +31,5 @@ Each phase ends with something committed and a result you can quote.
 | `meta-llama/Llama-3.2-3B-Instruct` | English-centric comparison | Llama 3.2 Community Licence, gated |
 | Gemini Flash | API judge and translator | API terms |
 
-Before phase 2: accept the Tiny Aya and Llama licences on Hugging Face, and add `HF_TOKEN` to Colab Secrets.
 
-## Resume milestones
 
-- **After phase 2:** "Built a cross-lingual faithfulness benchmark (English sources, Pidgin and Hausa answers) with known labels and reasoning traces, adversarial controls and robustness sets; benchmarked three small open models and an API judge."
-- **After phase 3:** add the fine-tuned result: F1 on Pidgin/Hausa, critical-error recall, cost on one T4.
-- **After phase 6:** link the report and the released adapter
