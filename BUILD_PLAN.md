@@ -1,6 +1,5 @@
 # Build Plan
 
-Each phase ends with something committed and a result you can quote.
 
 | Phase | What | Where | Output | Status |
 |---|---|---|---|---|
