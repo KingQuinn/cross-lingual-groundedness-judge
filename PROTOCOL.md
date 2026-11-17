@@ -184,4 +184,4 @@ Written reasoning is an **auditable trace**, not proof of how the model decided 
     - quoted phrases are now cut directly from the text;
     - "type 2 → type 7" now counts as CRITICAL;
     - omissions never keep only a leading clause or cut a list.
-- *(add any change made after results exist, with the reason)*
+
